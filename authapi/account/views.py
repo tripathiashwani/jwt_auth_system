@@ -7,9 +7,7 @@ from django.contrib.auth import authenticate
 from account.renderers import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from django.utils.encoding import smart_str,force_bytes,DjangoUnicodeDecodeError
-from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -64,10 +62,14 @@ class ChangePasswordView(APIView):
 class SendResetPasswordEmailView(APIView):
     renderer_classes=[UserRenderer]
     def post(self,request,format=None):
-        email=request.email
-        token=request.token
-        serializer=SendResetPasswordEmailSerializer(data=request.data,attrs={'email':email,'token':token})
+        serializer=SendResetPasswordEmailSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             return Response({'msg':'check your mail for reset link'},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+class UserPasswordResetView(APIView):
+    render_classes=[UserRenderer]
+    def post(self,request,uid,token,format=None):
+        serializer=UserPasswordResetView(data=request.data,context={'uid':uid,'token':token})
+        if serializer.is_valid(raise_exception=True):
+            return Response({'msg':'password changed successfully'},status=status.HTTP_200_OK)
